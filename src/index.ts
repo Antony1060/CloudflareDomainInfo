@@ -2,10 +2,13 @@ import { config as dotenvConfig } from 'dotenv';
 dotenvConfig()
 
 import Express from 'express';
+import cors from 'cors';
 import { log } from './util/log';
 import { getAllDomains } from './api/cloudflare';
 
 const app = Express();
+
+app.use(cors({ origin: '*' }))
 
 app.get("/", async (_, res) => {
     res.status(200).json({
