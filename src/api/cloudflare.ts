@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { log } from '../util/log';
 
-let domainsCache: CloudflareZone[] | null = null;
+let domainsCache: CloudflareZone[] = [];
 
-// clear every 10 minutes
+// update every 10 minutes
 setInterval(() => {
-    domainsCache = null;
+    getAllDomains({ cache: false });
 }, 10 * 60 * 1000)
 
 const http = axios.create({
@@ -40,9 +40,10 @@ const checkDomain = async (domain: CloudflareZone): Promise<boolean> => {
 
 // no support for pagination yet :(
 export const getAllDomains = async ({ cache }: RequestOpts = { cache: true }) => {
-    if(cache && domainsCache !== null)
+    if(cache)
         return domainsCache;
 
+    log("INFO", "Updating domains")
     const domains: CloudflareZone[] = await http.get(`/zones`, {
         params: {
             match: "all",
@@ -50,6 +51,7 @@ export const getAllDomains = async ({ cache }: RequestOpts = { cache: true }) =>
         }
     }).then(({ data }: { data: CloudflareZonesResponse }) => {
         if(!data.success) return [];
+        log("INFO", `Found ${data.result.length} zones`);
         return Promise.all(data.result.map(async domain => ({
             name: domain.name,
             status: domain.status !== "active" ? domain.status : !(await checkDomain(domain)) ? "invalid" : "active"
@@ -62,3 +64,6 @@ export const getAllDomains = async ({ cache }: RequestOpts = { cache: true }) =>
     domainsCache = domains;
     return domains;
 }
+
+// initial fetch
+getAllDomains({ cache: false })
