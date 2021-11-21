@@ -33,6 +33,11 @@ type CloudflareZone = {
     status: string
 }
 
+const checkDomain = async (domain: CloudflareZone): Promise<boolean> => {
+    if(process.env.CHECK_DOMAINS!.toLowerCase() !== "true") return Promise.resolve(true);
+    return axios.head(`https://${domain.name}`).then(() => true).catch(() => false)
+}
+
 // no support for pagination yet :(
 export const getAllDomains = async ({ cache }: RequestOpts = { cache: true }) => {
     if(cache && domainsCache !== null)
@@ -45,14 +50,14 @@ export const getAllDomains = async ({ cache }: RequestOpts = { cache: true }) =>
         }
     }).then(({ data }: { data: CloudflareZonesResponse }) => {
         if(!data.success) return [];
-        return data.result.map(domain => ({
+        return Promise.all(data.result.map(async domain => ({
             name: domain.name,
-            status: domain.status
-        }))
+            status: domain.status !== "active" ? domain.status : !(await checkDomain(domain)) ? "invalid" : "active"
+        })))
     }).catch((err) => {
         log("ERROR", err);
         return [];
-    })
+    });
 
     domainsCache = domains;
     return domains;
