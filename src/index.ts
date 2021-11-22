@@ -5,6 +5,7 @@ import Express from 'express';
 import cors from 'cors';
 import { log } from './util/log';
 import { getAllDomains } from './api/cloudflare';
+import { formatFromNow } from './lib/time';
 
 const app = Express();
 
@@ -15,6 +16,7 @@ app.get("/", async (_, res) => {
     res.status(200).json({
         status: 200,
         lastUpdated,
+        lastUpdatedFormat: formatFromNow(lastUpdated),
         domains
     })
 })
