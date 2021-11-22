@@ -11,9 +11,11 @@ const app = Express();
 app.use(cors({ origin: '*' }))
 
 app.get("/", async (_, res) => {
+    const [ lastUpdated, domains ] = await getAllDomains();
     res.status(200).json({
         status: 200,
-        domains: await getAllDomains()
+        lastUpdated,
+        domains
     })
 })
 

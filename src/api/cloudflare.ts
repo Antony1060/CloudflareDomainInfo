@@ -1,11 +1,12 @@
 import axios from 'axios';
 import { log } from '../util/log';
 
+let lastUpdated: number = Date.now();
 let domainsCache: CloudflareZone[] = [];
 
 // update every 10 minutes
 setInterval(() => {
-    getAllDomains({ cache: false });
+    updateLocalCache()
 }, 10 * 60 * 1000)
 
 const http = axios.create({
@@ -39,10 +40,7 @@ const checkDomain = async (domain: CloudflareZone): Promise<boolean> => {
 }
 
 // no support for pagination yet :(
-export const getAllDomains = async ({ cache }: RequestOpts = { cache: true }) => {
-    if(cache)
-        return domainsCache;
-
+const fetchAllDomains = async (): Promise<CloudflareZone[]> => {
     log("INFO", "Updating domains")
     const domains: CloudflareZone[] = await http.get(`/zones`, {
         params: {
@@ -61,9 +59,19 @@ export const getAllDomains = async ({ cache }: RequestOpts = { cache: true }) =>
         return [];
     });
 
-    domainsCache = domains;
     return domains;
 }
 
+const updateLocalCache = async () => {
+    domainsCache = await fetchAllDomains().finally(() => lastUpdated = Date.now())
+}
+
 // initial fetch
-getAllDomains({ cache: false })
+updateLocalCache()
+
+export const getAllDomains = async ({ cache }: RequestOpts = { cache: true }): Promise<[number, CloudflareZone[]]> => {
+    if(cache)
+        return [lastUpdated, domainsCache];
+
+    return [Date.now(), await fetchAllDomains()];
+}
