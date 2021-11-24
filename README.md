@@ -1,4 +1,6 @@
-## A backend for antony.domains
-### Just returns all domains I have from Cloudflare
+## A simple web app that returns all your domains at Cloudflare
 
-Don't take this code for reference, it was written in < 30 mins.
+This also serves as a backend for [antony.domains](https://antony.domains).
+Preview can be seen at [get.antony.domains](https://get.antony.domains)
+
+Don't take this code for reference, it was written in ~ 30 mins.
