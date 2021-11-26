@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { formatMs } from '../lib/time';
 import { log } from '../util/log';
 
 let lastUpdated: number = Date.now();
@@ -39,17 +40,18 @@ const checkDomain = async (domain: CloudflareZone): Promise<boolean> => {
     return axios.head(`https://${domain.name}`).then(() => true).catch(() => false)
 }
 
-// no support for pagination yet :(
-const fetchAllDomains = async (): Promise<CloudflareZone[]> => {
-    log("INFO", "Updating domains")
+const fetchAllDomains = async (page = 1): Promise<CloudflareZone[]> => {
+    const start = Date.now();
+    if(page === 1)
+        log("INFO", "Updating domains")
     const domains: CloudflareZone[] = await http.get(`/zones`, {
         params: {
             match: "all",
-            per_page: "50"
+            per_page: 50,
+            page
         }
     }).then(({ data }: { data: CloudflareZonesResponse }) => {
         if(!data.success) return [];
-        log("INFO", `Found ${data.result.length} zones`);
         return Promise.all(data.result.map(async domain => ({
             name: domain.name,
             status: domain.status !== "active" ? domain.status : !(await checkDomain(domain)) ? "invalid" : "active"
@@ -58,7 +60,11 @@ const fetchAllDomains = async (): Promise<CloudflareZone[]> => {
         log("ERROR", err);
         return [];
     });
+    if(domains.length > 0)
+        domains.push(...(await fetchAllDomains(page + 1)));
 
+    if(page === 1)
+        log("INFO", `Found ${domains.length} zones, took ${formatMs(Date.now() - start)}`);
     return domains;
 }
 

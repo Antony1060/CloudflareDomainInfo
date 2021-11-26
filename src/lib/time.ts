@@ -7,3 +7,10 @@ export const formatFromNow = (time: number): string => {
     const minutes = Math.floor(diff / 60);
     return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
 }
+
+// formats milliseconds into seconds if > 1000
+export const formatMs = (ms: number): string => {
+    if(ms > 1000)
+        return (ms / 1000).toFixed(2) + "s";
+    return ms + "ms"
+}

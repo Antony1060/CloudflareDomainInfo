@@ -3,7 +3,8 @@ import chalk from "chalk";
 const Levels = {
     INFO: chalk.bgBlueBright.black` INFO `,
     WARN: chalk.bgYellowBright.black` WARN `,
-    ERROR: chalk.bgRedBright.black` ERROR `,
+    DEBUG: chalk.bgYellow.black` DEBUG `,
+    ERROR: chalk.bgRedBright.black` ERROR `
 };
 
 export type Level = keyof typeof Levels 
@@ -17,5 +18,6 @@ export const time = (): string => {
 };
 
 export function log(level: Level, message = ""): void  {
-    console.log(`${time()} ${Levels[level]} ${message}`);
+    if(level !== "DEBUG" || (level === "DEBUG" && process.env.DEBUG === "true"))
+        console.log(`${time()} ${Levels[level]} ${message}`);
 }
