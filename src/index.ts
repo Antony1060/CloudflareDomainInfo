@@ -28,5 +28,5 @@ app.use((_, res) => {
 })
 
 app.listen(process.env.PORT, () => {
-    log("INFO", `Listening on ${process.env.PORT}`)
+    log.INFO(`Listening on ${process.env.PORT}`)
 })
