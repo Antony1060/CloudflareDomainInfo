@@ -78,7 +78,7 @@ const fetchAllDomains = async (page = 1): Promise<CloudflareZone[]> => {
     for (let i = 0; i < domains.data.result.length; i++) {
         log.PING(i.toString() + " / " + (domains.data.result.length-1));
         const data = domains.data.result[i];
-        const resolvedData = { name: data.name, status: (await checkDomain(data) ? "invalid" : "inactive") };
+        const resolvedData = { name: data.name, status: data.status !== "active" ? data.status : !(await checkDomain(data)) ? "invalid" : "active" };
         domainData.push(resolvedData);
     }
     
