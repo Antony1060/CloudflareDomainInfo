@@ -61,6 +61,15 @@ const fetchAllDomains = async (page = 1): Promise<CloudflareZone[]> => {
             per_page: 50,
             page
         }
+    }).then(({ data }: { data: CloudflareZonesResponse }) => {
+        if(!data.success) return [];
+        return Promise.all(data.result.map(async domain => ({
+            name: domain.name,
+            status: domain.status !== "active" ? domain.status : !(await checkDomain(domain)) ? "invalid" : "active"
+        })))
+    }).catch((err) => {
+        log.ERROR(err);
+        return [];
     });
 
     if (domains.status !== 200) {

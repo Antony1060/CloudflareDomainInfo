@@ -6,7 +6,7 @@ export const log = createLogger({
     WARN: chalk.bgYellowBright.white` WARN `,
     DEBUG: chalk.bgYellow.white` DEBUG `,
     ERROR: chalk.bgRedBright.white` ERROR `,
-    PING: chalk.bgGreen.white` PING `,
+    PING: chalk.bgGreen.white` PING `
 }, {});
 
 export const time = (): string => {
