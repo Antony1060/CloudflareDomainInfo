@@ -43,7 +43,7 @@ const checkDomain = async (domain: CloudflareZone): Promise<boolean> => {
 const fetchAllDomains = async (page = 1): Promise<CloudflareZone[]> => {
     const start = Date.now();
     if(page === 1)
-        log("INFO", "Updating domains")
+        log.INFO("Updating domains")
     const domains: CloudflareZone[] = await http.get(`/zones`, {
         params: {
             match: "all",
@@ -57,14 +57,14 @@ const fetchAllDomains = async (page = 1): Promise<CloudflareZone[]> => {
             status: domain.status !== "active" ? domain.status : !(await checkDomain(domain)) ? "invalid" : "active"
         })))
     }).catch((err) => {
-        log("ERROR", err);
+        log.ERROR(err);
         return [];
     });
     if(domains.length > 0)
         domains.push(...(await fetchAllDomains(page + 1)));
 
     if(page === 1)
-        log("INFO", `Found ${domains.length} zones, took ${formatMs(Date.now() - start)}`);
+        log.INFO(`Found ${domains.length} zones, took ${formatMs(Date.now() - start)}`);
     return domains;
 }
 
