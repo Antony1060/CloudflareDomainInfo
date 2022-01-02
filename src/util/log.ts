@@ -2,10 +2,11 @@ import chalk from "chalk";
 import { createLogger } from "@lvksh/logger";
 
 export const log = createLogger({
-    INFO: chalk.bgBlueBright.black` INFO `,
-    WARN: chalk.bgYellowBright.black` WARN `,
-    DEBUG: chalk.bgYellow.black` DEBUG `,
-    ERROR: chalk.bgRedBright.black` ERROR `
+    INFO: chalk.bgBlueBright.white` INFO `,
+    WARN: chalk.bgYellowBright.white` WARN `,
+    DEBUG: chalk.bgYellow.white` DEBUG `,
+    ERROR: chalk.bgRedBright.white` ERROR `,
+    PING: chalk.bgGreen.white` PING `,
 }, {});
 
 export const time = (): string => {
