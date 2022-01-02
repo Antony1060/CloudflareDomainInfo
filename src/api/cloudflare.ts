@@ -1,6 +1,8 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { formatMs } from '../lib/time';
 import { log } from '../util/log';
+import { inspect } from 'util';
+import chalk from 'chalk';
 
 let lastUpdated: number = Date.now();
 let domainsCache: CloudflareZone[] = [];
@@ -24,7 +26,7 @@ type RequestOpts = {
 
 type CloudflareZonesResponse = {
     success: boolean,
-    erorrs: string[],
+    errors: string[],
     messages: string[],
     result: CloudflareZone[]
 }
@@ -36,15 +38,24 @@ type CloudflareZone = {
 }
 
 const checkDomain = async (domain: CloudflareZone): Promise<boolean> => {
+    log.PING(domain.name + ' ' + chalk.grey`CHECKING`);
+
     if(process.env.CHECK_DOMAINS!.toLowerCase() !== "true") return Promise.resolve(true);
-    return axios.head(`https://${domain.name}`).then(() => true).catch(() => false)
+    const result = await axios.head(`https://${domain.name}`, { timeout: +(process.env.TIMEOUT ?? 5000) }).then(() => true).catch(() => false);
+
+    log.PING(domain.name + ' ' + (result ? chalk.green`OK` : chalk.red`OFFLINE`));
+
+    return result;
 }
 
 const fetchAllDomains = async (page = 1): Promise<CloudflareZone[]> => {
     const start = Date.now();
     if(page === 1)
         log.INFO("Updating domains")
-    const domains: CloudflareZone[] = await http.get(`/zones`, {
+    else
+        log.INFO("Fetching page " + page);
+    
+    const domains: AxiosResponse<CloudflareZonesResponse> = await http.get(`/zones`, {
         params: {
             match: "all",
             per_page: 50,
@@ -60,12 +71,32 @@ const fetchAllDomains = async (page = 1): Promise<CloudflareZone[]> => {
         log.ERROR(err);
         return [];
     });
-    if(domains.length > 0)
-        domains.push(...(await fetchAllDomains(page + 1)));
+
+    if (domains.status !== 200) {
+        log.ERROR('Non 200 error code');
+        return [];
+    }
+
+    const domainData: CloudflareZone[] = [];
+
+    if (!domains.data.result) {
+        log.INFO("Not successful", inspect(domains, true, 1));
+        return [];
+    }
+
+    for (let i = 0; i < domains.data.result.length; i++) {
+        log.PING(i.toString() + " / " + (domains.data.result.length-1));
+        const data = domains.data.result[i];
+        const resolvedData = { name: data.name, status: (await checkDomain(data) ? "invalid" : "inactive") };
+        domainData.push(resolvedData);
+    }
+    
+    if(domainData.length > 0)
+        domainData.push(...(await fetchAllDomains(page + 1)));
 
     if(page === 1)
-        log.INFO(`Found ${domains.length} zones, took ${formatMs(Date.now() - start)}`);
-    return domains;
+        log.INFO(`Found ${domainData.length} zones, took ${formatMs(Date.now() - start)}`);
+    return domainData;
 }
 
 const updateLocalCache = async () => {

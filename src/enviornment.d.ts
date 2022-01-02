@@ -5,7 +5,8 @@ declare global {
             DEBUG: string,
             PORT: string,
             CF_KEY: string,
-            CHECK_DOMAINS: string
+            CHECK_DOMAINS: string,
+            TIMEOUT: string
         }
     }
 }
