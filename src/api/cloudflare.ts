@@ -41,7 +41,7 @@ const checkDomain = async (domain: CloudflareZone): Promise<boolean> => {
     log.PING(domain.name + ' ' + chalk.grey`CHECKING`);
 
     if(process.env.CHECK_DOMAINS!.toLowerCase() !== "true") return Promise.resolve(true);
-    const result = await axios.head(`https://${domain.name}`).then(() => true).catch(() => false);
+    const result = await axios.head(`https://${domain.name}`, { timeout: +(process.env.TIMEOUT ?? 5000) }).then(() => true).catch(() => false);
 
     log.PING(domain.name + ' ' + (result ? chalk.green`OK` : chalk.red`OFFLINE`));
 
@@ -75,7 +75,7 @@ const fetchAllDomains = async (page = 1): Promise<CloudflareZone[]> => {
         return [];
     }
 
-    for (let i = 0; i <= domains.data.result.length; i++) {
+    for (let i = 0; i < domains.data.result.length; i++) {
         log.PING(i.toString() + " / " + (domains.data.result.length-1));
         const data = domains.data.result[i];
         const resolvedData = { name: data.name, status: (await checkDomain(data) ? "invalid" : "inactive") };
