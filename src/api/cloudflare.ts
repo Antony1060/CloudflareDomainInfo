@@ -48,7 +48,9 @@ const checkDomain = async (domain: CloudflareZone): Promise<boolean> => {
             timeout: +(process.env.TIMEOUT ?? 5000),
         })
         .then(() => true)
-        .catch(() => false);
+        .catch((error) =>
+            error.response?.status ? error.response?.status < 500 : false
+        );
 
     log.PING(
         domain.name + " " + (result ? chalk.green`OK` : chalk.red`OFFLINE`)
