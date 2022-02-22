@@ -1,8 +1,10 @@
+import { createLogger } from "@lvksh/logger";
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import { inspect } from "node:util";
 
 import { formatMs } from "../lib/time";
+import steve from "../pricing.json";
 import { log } from "../util/log";
 
 let lastUpdated: number = Date.now();
@@ -115,6 +117,56 @@ const fetchAllDomains = async (page = 1): Promise<CloudflareZone[]> => {
                 Date.now() - start
             )}`
         );
+
+    const steve2 = steve as Record<string, string>;
+    const tldRoster: Record<string, number> = {};
+    const missingTLD: string[] = [];
+    let total: bigint = BigInt(0);
+
+    for (const zone of domainData) {
+        const tld = zone.name.split(".").pop() || "";
+
+        tldRoster[tld] = (tldRoster[tld] || 0) + 1;
+
+        if (steve2[tld]) {
+            total =
+                total +
+                BigInt(Math.round(Number.parseFloat(steve2[tld] || "0") * 100));
+        } else {
+            missingTLD.push(tld);
+        }
+    }
+
+    log.DEBUG("Missing Financial Data about ", new Set(missingTLD));
+    log.DEBUG(
+        "Total Predicted Cost",
+        total.toString().slice(0, total.toString().length - 2) +
+            "." +
+            total.toString().slice(total.toString().length - 2)
+    );
+
+    const tldRosterFilter = Object.keys(tldRoster)
+        .map((key) => ({
+            key,
+            value: tldRoster[key],
+        }))
+        .sort((a, b) => b.value - a.value);
+
+    const logConfig = Object.assign(
+        { title: chalk.bold`TLD` },
+        ...Object.keys(tldRoster).map((key) => ({ [key]: key }))
+    );
+
+    const logger = createLogger(logConfig, { padding: "PREPEND" });
+
+    console.log();
+    logger.title("Frequency");
+
+    for (const kevin of tldRosterFilter) {
+        logger[kevin.key](
+            chalk.greenBright("█".repeat(kevin.value) + " " + kevin.value)
+        );
+    }
 
     return domainData;
 };
