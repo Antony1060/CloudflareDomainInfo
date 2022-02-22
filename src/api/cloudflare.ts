@@ -4,7 +4,7 @@ import chalk from "chalk";
 import { inspect } from "node:util";
 
 import { formatMs } from "../lib/time";
-import steve from "../pricing.json";
+import topSecretFinancialData from "../pricing.json";
 import { log } from "../util/log";
 
 let lastUpdated: number = Date.now();
@@ -118,53 +118,76 @@ const fetchAllDomains = async (page = 1): Promise<CloudflareZone[]> => {
             )}`
         );
 
-    const steve2 = steve as Record<string, string>;
+    const relativeTopSecretFinancialData = topSecretFinancialData as Record<
+        string,
+        string
+    >;
     const tldRoster: Record<string, number> = {};
     const missingTLD: string[] = [];
-    let total: bigint = BigInt(0);
+    let totalSecretBudgetValueThing: bigint = BigInt(0);
 
     for (const zone of domainData) {
-        const tld = zone.name.split(".").pop() || "";
+        const theTLDRINQUESTION = zone.name.split(".").pop() || "";
 
-        tldRoster[tld] = (tldRoster[tld] || 0) + 1;
+        tldRoster[theTLDRINQUESTION] = (tldRoster[theTLDRINQUESTION] || 0) + 1;
 
-        if (steve2[tld]) {
-            total =
-                total +
-                BigInt(Math.round(Number.parseFloat(steve2[tld] || "0") * 100));
+        if (relativeTopSecretFinancialData[theTLDRINQUESTION]) {
+            totalSecretBudgetValueThing =
+                totalSecretBudgetValueThing +
+                BigInt(
+                    Math.round(
+                        Number.parseFloat(
+                            relativeTopSecretFinancialData[theTLDRINQUESTION] ||
+                                "0"
+                        ) * 100
+                    )
+                );
         } else {
-            missingTLD.push(tld);
+            missingTLD.push(theTLDRINQUESTION);
         }
     }
 
     log.DEBUG("Missing Financial Data about ", new Set(missingTLD));
     log.DEBUG(
         "Total Predicted Cost",
-        total.toString().slice(0, total.toString().length - 2) +
+        totalSecretBudgetValueThing
+            .toString()
+            .slice(0, totalSecretBudgetValueThing.toString().length - 2) +
             "." +
-            total.toString().slice(total.toString().length - 2)
+            totalSecretBudgetValueThing
+                .toString()
+                .slice(totalSecretBudgetValueThing.toString().length - 2)
     );
 
     const tldRosterFilter = Object.keys(tldRoster)
-        .map((key) => ({
-            key,
-            value: tldRoster[key],
+        .map((thatkeything) => ({
+            key: thatkeything,
+            value: tldRoster[thatkeything],
         }))
-        .sort((a, b) => b.value - a.value);
+        .sort(
+            (thefirstone, thesecondone) =>
+                thesecondone.value - thefirstone.value
+        );
 
     const logConfig = Object.assign(
         { title: chalk.bold`TLD` },
-        ...Object.keys(tldRoster).map((key) => ({ [key]: key }))
+        ...Object.keys(tldRoster).map((yetanotherkeytorefactorshrug) => ({
+            [yetanotherkeytorefactorshrug]: yetanotherkeytorefactorshrug,
+        }))
     );
 
-    const logger = createLogger(logConfig, { padding: "PREPEND" });
+    const yeahKindaWannaCallThisLoggerButNah = createLogger(logConfig, {
+        padding: "PREPEND",
+    });
 
     console.log();
-    logger.title("Frequency");
+    yeahKindaWannaCallThisLoggerButNah.title("Frequency");
 
-    for (const kevin of tldRosterFilter) {
-        logger[kevin.key](
-            chalk.greenBright("█".repeat(kevin.value) + " " + kevin.value)
+    for (const kevinWasHere of tldRosterFilter) {
+        yeahKindaWannaCallThisLoggerButNah[kevinWasHere.key](
+            chalk.greenBright(
+                "█".repeat(kevinWasHere.value) + " " + kevinWasHere.value
+            )
         );
     }
 
