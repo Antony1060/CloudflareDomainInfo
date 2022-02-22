@@ -1,8 +1,10 @@
+import { createLogger } from "@lvksh/logger";
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import { inspect } from "node:util";
 
 import { formatMs } from "../lib/time";
+import topSecretFinancialData from "../pricing.json";
 import { log } from "../util/log";
 
 let lastUpdated: number = Date.now();
@@ -115,6 +117,79 @@ const fetchAllDomains = async (page = 1): Promise<CloudflareZone[]> => {
                 Date.now() - start
             )}`
         );
+
+    const relativeTopSecretFinancialData = topSecretFinancialData as Record<
+        string,
+        string
+    >;
+    const tldRoster: Record<string, number> = {};
+    const missingTLD: string[] = [];
+    let totalSecretBudgetValueThing: bigint = BigInt(0);
+
+    for (const zone of domainData) {
+        const theTLDRINQUESTION = zone.name.split(".").pop() || "";
+
+        tldRoster[theTLDRINQUESTION] = (tldRoster[theTLDRINQUESTION] || 0) + 1;
+
+        if (relativeTopSecretFinancialData[theTLDRINQUESTION]) {
+            totalSecretBudgetValueThing =
+                totalSecretBudgetValueThing +
+                BigInt(
+                    Math.round(
+                        Number.parseFloat(
+                            relativeTopSecretFinancialData[theTLDRINQUESTION] ||
+                                "0"
+                        ) * 100
+                    )
+                );
+        } else {
+            missingTLD.push(theTLDRINQUESTION);
+        }
+    }
+
+    log.DEBUG("Missing Financial Data about ", new Set(missingTLD));
+    log.DEBUG(
+        "Total Predicted Cost",
+        totalSecretBudgetValueThing
+            .toString()
+            .slice(0, totalSecretBudgetValueThing.toString().length - 2) +
+            "." +
+            totalSecretBudgetValueThing
+                .toString()
+                .slice(totalSecretBudgetValueThing.toString().length - 2)
+    );
+
+    const tldRosterFilter = Object.keys(tldRoster)
+        .map((thatkeything) => ({
+            key: thatkeything,
+            value: tldRoster[thatkeything],
+        }))
+        .sort(
+            (thefirstone, thesecondone) =>
+                thesecondone.value - thefirstone.value
+        );
+
+    const logConfig = Object.assign(
+        { title: chalk.bold`TLD` },
+        ...Object.keys(tldRoster).map((yetanotherkeytorefactorshrug) => ({
+            [yetanotherkeytorefactorshrug]: yetanotherkeytorefactorshrug,
+        }))
+    );
+
+    const yeahKindaWannaCallThisLoggerButNah = createLogger(logConfig, {
+        padding: "PREPEND",
+    });
+
+    console.log();
+    yeahKindaWannaCallThisLoggerButNah.title("Frequency");
+
+    for (const kevinWasHere of tldRosterFilter) {
+        yeahKindaWannaCallThisLoggerButNah[kevinWasHere.key](
+            chalk.greenBright(
+                "█".repeat(kevinWasHere.value) + " " + kevinWasHere.value
+            )
+        );
+    }
 
     return domainData;
 };
